@@ -9,6 +9,7 @@ Responsibilities:
 """
 from __future__ import annotations
 
+import platform
 from collections import defaultdict
 from typing import TypedDict
 
@@ -16,6 +17,14 @@ import pytesseract
 
 from .models import BoundingBox, TextBlock
 from .preprocessing import PreprocessedPage
+
+
+# R2.4: Add OS-specific path for Tesseract on Windows
+if platform.system() == "Windows":
+    # Default path for Tesseract installed via Chocolatey on GitHub Actions
+    pytesseract.pytesseract.tesseract_cmd = (
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    )
 
 
 class OcrBlock(TypedDict):

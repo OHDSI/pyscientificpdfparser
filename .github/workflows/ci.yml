@@ -2,13 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v3
@@ -24,10 +31,19 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
-    - name: Install Tesseract
+    - name: Install Tesseract (Linux)
+      if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y tesseract-ocr
+
+    - name: Install Tesseract (macOS)
+      if: runner.os == 'macOS'
+      run: brew install tesseract
+
+    - name: Install Tesseract (Windows)
+      if: runner.os == 'Windows'
+      run: choco install tesseract --yes
 
     - name: Install dependencies
       run: |
