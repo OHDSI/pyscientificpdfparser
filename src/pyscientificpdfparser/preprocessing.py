@@ -82,7 +82,7 @@ def render_pdf_to_images(
     zoom = dpi / 72  # PyMuPDF uses 72 DPI as the base
     mat = fitz.Matrix(zoom, zoom)
 
-    with fitz.open(pdf_path) as doc:
+    with fitz.open(str(pdf_path)) as doc:
         for page_num, page in enumerate(doc):
             # R1.2: Detect if a page is image-based (scanned)
             # Heuristic: if a page has no extractable text, it's likely scanned.
