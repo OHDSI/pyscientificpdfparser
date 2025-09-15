@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyscientificpdfparser"
-version = "0.1.2"
+version = "0.1.3"
 description = "A Python package to parse scientific PDF documents into structured Markdown."
 authors = ["Gowtham Rao <rao@ohdsi.org>"]
 license = "Apache-2.0"
