@@ -74,4 +74,4 @@ def test_render_pdf_to_images(mock_fitz_open: mock.MagicMock) -> None:
     assert page2.image.size == (10, 10)
 
     # 4. Verify that fitz.open was called correctly
-    mock_fitz_open.assert_called_once_with(dummy_path)
+    mock_fitz_open.assert_called_once_with(str(dummy_path))
