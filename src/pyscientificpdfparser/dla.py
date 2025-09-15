@@ -41,10 +41,14 @@ class LayoutAnalyzer:
                 AutoModelForObjectDetection.from_pretrained(model_name)
             )
             self.model.eval()  # Set model to evaluation mode
-        except OSError:
+        except Exception as e:
+            print(f"CRITICAL: Failed to load LayoutAnalyzer model '{model_name}'.")
+            print(f"CRITICAL: Error details: {e}")
             print(
-                f"Could not load model '{model_name}'. "
-                "Ensure you have an internet connection."
+                "CRITICAL: Document Layout Analysis will be skipped. "
+                "This may be due to a missing internet connection, "
+                "a problem with the Tesseract installation, or other "
+                "dependency issues."
             )
             # Handle model loading failure gracefully
             self.processor = None
