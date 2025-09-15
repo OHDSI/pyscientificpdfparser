@@ -33,6 +33,7 @@ def parse_pdf(
     """
     print(f"1. Preprocessing: Rendering PDF pages for {pdf_path.name}...")
     preprocessed_pages = preprocessing.render_pdf_to_images(pdf_path)
+    print(f"DEBUG: Number of preprocessed pages: {len(preprocessed_pages)}")
 
     all_elements = []
     page_images = [p.image for p in preprocessed_pages]
@@ -63,6 +64,7 @@ def parse_pdf(
 
         all_elements.extend(processed_layout_elements)
 
+    print(f"DEBUG: Total elements before sectioning: {len(all_elements)}")
     # 5. Section Segmentation
     print("5. Segmenting document into logical sections...")
     sections = sectioning.segment_into_sections(all_elements)

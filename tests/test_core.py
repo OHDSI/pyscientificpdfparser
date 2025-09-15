@@ -99,7 +99,10 @@ def test_parse_pdf_integration() -> None:
 
     # --- Act ---
     # Run the actual parsing function without mocks
+    print(f"DEBUG: PDF path: {pdf_path}")
+    print(f"DEBUG: PDF path exists: {pdf_path.exists()}")
     document = core.parse_pdf(pdf_path=pdf_path, output_dir=output_dir)
+    print(f"DEBUG: Returned document: {document}")
 
     # --- Assert ---
     # 1. Check the Document object
