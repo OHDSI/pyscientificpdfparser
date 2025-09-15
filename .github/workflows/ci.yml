@@ -43,7 +43,13 @@ jobs:
       run: choco install tesseract --yes
 
     - name: Install dependencies
+      if: runner.os != 'Windows'
       run: |
+        poetry install --no-root --with dev --extras "ml llm"
+    - name: Install dependencies on Windows
+      if: runner.os == 'Windows'
+      run: |
+        pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
         poetry install --no-root --with dev --extras "ml llm"
 
     - name: Run tests
