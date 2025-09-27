@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+pip-cache/
+.env
+
+# Poetry
+.poetry/
+poetry.lock
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+tests/test_output/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Secrets and credentials
+*.env
+secrets.yml
+*.pem
+*.key
+
+# Documentation build artifacts
+site/

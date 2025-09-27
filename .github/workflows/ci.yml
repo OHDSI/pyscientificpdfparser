@@ -1,61 +1,129 @@
+# ci.yml - Continuous Integration Workflow
+# This workflow runs linting and tests on every push and pull request.
 name: CI
 
+# -----------------
+#      Triggers
+# -----------------
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
 
+# -----------------
+#   Concurrency
+# -----------------
+# Ensures that only one workflow run is initiated per branch for the same event.
+# It cancels any in-progress runs on the same branch when a new push is made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# -----------------
+#      Jobs
+# -----------------
 jobs:
-  build:
+  # -----------------
+  #    Lint Job
+  # -----------------
+  # This job runs first to provide fast feedback on code style and quality.
+  lint:
+    name: Lint and Static Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10 # Generous timeout for linting
+
+    # --- Permissions ---
+    # Principle of Least Privilege: This job only needs to read contents.
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
+      - name: Checkout repository
+        # uses: actions/checkout@v5.0.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Set up Python
+        # uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: '3.12'
+
+      - name: Run pre-commit hooks
+        # uses: pre-commit/action@v3.0.1
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
+
+  # -----------------
+  #     Test Job
+  # -----------------
+  # This job runs tests across multiple platforms and Python versions.
+  # It depends on the 'lint' job to ensure code quality before running tests.
+  test:
+    name: Test Suite
+    needs: [lint]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20 # More time for tests, especially on slower platforms
+
+    # --- Permissions ---
+    permissions:
+      contents: read
+
+    # --- Matrix Strategy ---
+    # Tests are run against all supported OS and Python versions.
+    # fail-fast: false ensures that all jobs in the matrix run to completion,
+    # even if one of them fails.
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+      - name: Checkout repository
+        # uses: actions/checkout@v5.0.0
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+      - name: Set up Python ${{ matrix.python-version }}
+        # uses: actions/setup-python@v6.0.0
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
+        with:
+          python-version: ${{ matrix.python-version }}
+          # Use Poetry's native caching for dependencies.
+          cache: 'poetry'
 
-    - name: Install Tesseract (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y tesseract-ocr
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          poetry --version
 
-    - name: Install Tesseract (macOS)
-      if: runner.os == 'macOS'
-      run: brew install tesseract
+      - name: Install dependencies
+        run: poetry install --no-interaction -vv --with dev
 
-    - name: Install Tesseract (Windows)
-      if: runner.os == 'Windows'
-      run: choco install tesseract --yes
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=src --cov-report=xml
 
-    - name: Install dependencies
-      run: |
-        poetry install --no-root --with dev --extras "ml llm"
-
-    - name: Run tests
-      run: |
-        poetry run pytest --cov=./ --cov-report=xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        # uses: codecov/codecov-action@v5.5.1
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: ${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

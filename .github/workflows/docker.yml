@@ -1,0 +1,84 @@
+# docker.yml - Docker Build and Scan Workflow
+# This workflow builds the Docker image and scans it for vulnerabilities.
+name: Docker Build and Scan
+
+# -----------------
+#      Triggers
+# -----------------
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# -----------------
+#   Concurrency
+# -----------------
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# -----------------
+#   Permissions
+# -----------------
+# Set default read-only permissions for the entire workflow.
+permissions:
+  contents: read
+
+# -----------------
+#      Jobs
+# -----------------
+jobs:
+  build-and-scan:
+    name: Build and Scan Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Log in to Docker Hub
+        # Only log in if secrets are provided. This prevents errors on forks.
+        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          # Do not push on pull requests, only build for verification.
+          push: ${{ github.event_name != 'pull_request' }}
+          # Load the image into the local Docker daemon to make it available for scanning.
+          load: true
+          tags: local-image:test
+          # Use GitHub Actions cache for build layers to speed up subsequent builds.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          image-ref: 'local-image:test'
+          format: 'table'
+          # Fail the build on critical or high vulnerabilities.
+          exit-code: '1'
+          # Do not fail on vulnerabilities that have no fix yet.
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

@@ -1,4 +1,5 @@
 # .pre-commit-config.yaml
+# For more information, see https://pre-commit.com
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -6,28 +7,23 @@ repos:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: check-yaml
+    -   id: check-toml
+    -   id: check-merge-conflict
     -   id: check-added-large-files
+        args: ['--maxkb=1024'] # 1 MB
 
--   repo: https://github.com/psf/black
-    rev: 24.4.2
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
     hooks:
-    -   id: black
-        language_version: python3.10
-
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-    -   id: isort
-        name: isort (python)
-
--   repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
-    hooks:
-    -   id: flake8
+    # Run the linter.
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+    # Run the formatter.
+    -   id: ruff-format
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.10.0
     hooks:
     -   id: mypy
-        args: [--strict, --ignore-missing-imports]
+        # The configuration is read from pyproject.toml
         additional_dependencies: [pydantic]

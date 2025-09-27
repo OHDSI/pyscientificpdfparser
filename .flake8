@@ -1,6 +1,0 @@
-[flake8]
-max-line-length = 88
-extend-ignore = E203
-per-file-ignores =
-    src/pyscientificpdfparser/dla.py:E501
-    src/pyscientificpdfparser/tsr.py:E501
