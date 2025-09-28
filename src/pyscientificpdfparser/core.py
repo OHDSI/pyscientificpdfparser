@@ -5,6 +5,7 @@ Core pipeline orchestration for the pyScientificPdfParser.
 This module contains the main function(s) that connect the different stages
 of the parsing pipeline, from input processing to final output generation.
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -54,7 +55,11 @@ def parse_pdf(
         processed_layout_elements = []
         for element in layout_elements:
             if isinstance(element, models.Table):
-                table_image = original_image.crop(element.bbox)
+                # The bounding box from the model can have float values, but PIL's crop requires integers.
+                # We create a new 4-element tuple with integer types to satisfy mypy.
+                x0, y0, x1, y1 = element.bbox
+                bbox_int = (int(x0), int(y0), int(x1), int(y1))
+                table_image = original_image.crop(bbox_int)
                 # Pass all OCR blocks from the page to the recognizer
                 # so it can find the text within the table's bbox.
                 element = table_recognizer.recognize_table(

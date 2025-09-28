@@ -7,6 +7,7 @@ Responsibilities:
 - Render PDF pages to images for OCR and DLA.
 - Perform image enhancement (deskewing, denoising) to improve OCR quality.
 """
+
 from __future__ import annotations
 
 import pathlib

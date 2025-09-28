@@ -1,5 +1,6 @@
 # src/pyscientificpdfparser/cli.py
 """Command-Line Interface for the pyScientificPdfParser."""
+
 from __future__ import annotations
 
 import pathlib
@@ -9,25 +10,25 @@ import click
 from pyscientificpdfparser.core import parse_pdf
 
 
-@click.group()
+@click.group()  # type: ignore[misc]
 def cli() -> None:
     """A CLI tool for parsing scientific PDF documents."""
     pass
 
 
-@cli.command()
-@click.argument(
+@cli.command()  # type: ignore[misc]
+@click.argument(  # type: ignore[misc]
     "pdf_path",
     type=click.Path(exists=True, dir_okay=False, resolve_path=True),
 )
-@click.option(
+@click.option(  # type: ignore[misc]
     "--output-dir",
     "-o",
     default="./parsed_output",
     type=click.Path(file_okay=False, resolve_path=True),
     help="The directory where output files will be saved.",
 )
-@click.option(
+@click.option(  # type: ignore[misc]
     "--llm-refine",
     is_flag=True,
     default=False,

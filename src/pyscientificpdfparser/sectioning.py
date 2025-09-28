@@ -7,6 +7,7 @@ Responsibilities:
 - Identify standard scientific sections (Abstract, Introduction, Methods, etc.).
 - Handle variations in section naming.
 """
+
 from __future__ import annotations
 
 import re

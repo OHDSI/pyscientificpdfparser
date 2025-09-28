@@ -1,0 +1,50 @@
+# Version control
+.git/
+.gitignore
+
+# CI/CD configuration
+.github/
+
+# Python caches and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Documentation
+docs/
+*.md
+
+# Build and distribution artifacts
+.cache/
+.pytest_cache/
+.mypy_cache/
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Local environment configuration
+.env
+.env.*
+*.env
+
+# IDE and editor configuration
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test reports
+coverage.xml
+htmlcov/
+.coverage
+.tox/

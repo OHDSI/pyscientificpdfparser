@@ -8,6 +8,7 @@ Responsibilities:
 - Save extracted figures to an assets directory and link them in the Markdown.
 - Provide a structured JSON output of the Document model.
 """
+
 from __future__ import annotations
 
 import pathlib
