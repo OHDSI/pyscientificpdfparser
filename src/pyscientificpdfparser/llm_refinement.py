@@ -9,6 +9,7 @@ Responsibilities:
 - Extract specific entities (e.g., datasets, funding sources).
 - Use structured output techniques (e.g., instructor) for reliability.
 """
+
 from __future__ import annotations
 
 import logging

@@ -7,6 +7,7 @@ Responsibilities:
 - Classify regions into types (Title, Text, Table, Figure, etc.).
 - Determine the logical reading order of the identified regions.
 """
+
 from __future__ import annotations
 
 from typing import Union
@@ -29,17 +30,13 @@ class LayoutAnalyzer:
     A class to analyze the layout of a document page using a LayoutLMv3 model.
     """
 
-    def __init__(
-        self, model_name: str = "HYPJUDY/layoutlmv3-base-finetuned-publaynet"
-    ):
+    def __init__(self, model_name: str = "HYPJUDY/layoutlmv3-base-finetuned-publaynet"):
         """
         Initializes the LayoutAnalyzer by loading the model and processor.
         """
         try:
             self.processor = AutoProcessor.from_pretrained(model_name)
-            self.model = (
-                AutoModelForObjectDetection.from_pretrained(model_name)
-            )
+            self.model = AutoModelForObjectDetection.from_pretrained(model_name)
             self.model.eval()  # Set model to evaluation mode
         except Exception as e:
             print(f"CRITICAL: Failed to load LayoutAnalyzer model '{model_name}'.")
@@ -90,9 +87,7 @@ class LayoutAnalyzer:
         ) -> tuple[float, float, float, float]:
             return (box[0] * w, box[1] * h, box[2] * w, box[3] * h)
 
-        denormalized_boxes = [
-            denormalize_box(box, width, height) for box in boxes
-        ]
+        denormalized_boxes = [denormalize_box(box, width, height) for box in boxes]
 
         # 4. Create initial layout elements from predictions
         # The model's config contains the mapping from id to label
@@ -104,7 +99,9 @@ class LayoutAnalyzer:
             if label == "text":
                 # TextBlocks will be populated by associating OCR blocks
                 raw_elements.append(
-                    TextBlock(text="", bbox=bbox, page_number=page_number, confidence=None)
+                    TextBlock(
+                        text="", bbox=bbox, page_number=page_number, confidence=None
+                    )
                 )  # noqa: E501
             elif label == "table":
                 raw_elements.append(Table(bbox=bbox, page_number=page_number, rows=[]))
@@ -140,9 +137,7 @@ class LayoutAnalyzer:
                     ocr_center_y = (ocr_block.bbox[1] + ocr_block.bbox[3]) / 2
                     if (
                         element.bbox[0] <= ocr_center_x <= element.bbox[2]
-                        and element.bbox[1]
-                        <= ocr_center_y
-                        <= element.bbox[3]
+                        and element.bbox[1] <= ocr_center_y <= element.bbox[3]
                     ):
                         contained_texts.append(ocr_block.text)
 

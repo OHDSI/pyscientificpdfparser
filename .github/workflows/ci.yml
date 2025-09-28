@@ -1,3 +1,7 @@
+# This workflow is designed based on best practices for Python CI.
+# It includes linting, testing across multiple OS and Python versions,
+# and code coverage reporting.
+
 name: CI
 
 on:
@@ -6,56 +10,72 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# Enforce the Principle of Least Privilege.
+permissions:
+  contents: read
+
 jobs:
-  build:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Set up Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Run pre-commit
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+
+  test:
+    name: Test
+    needs: [lint]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
+      - name: Install Tesseract (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr
 
-    - name: Install Tesseract (Linux)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y tesseract-ocr
+      - name: Install Tesseract (macOS)
+        if: runner.os == 'macOS'
+        run: brew install tesseract
 
-    - name: Install Tesseract (macOS)
-      if: runner.os == 'macOS'
-      run: brew install tesseract
+      - name: Install Tesseract (Windows)
+        if: runner.os == 'Windows'
+        run: choco install tesseract --yes
 
-    - name: Install Tesseract (Windows)
-      if: runner.os == 'Windows'
-      run: choco install tesseract --yes
+      - name: Install dependencies with Poetry
+        run: |
+          pipx install poetry
+          poetry install --with dev --extras "ml llm"
 
-    - name: Install dependencies
-      run: |
-        poetry install --no-root --with dev --extras "ml llm"
+      - name: Run tests and generate coverage report
+        run: poetry run pytest --cov=src --cov-report=xml
 
-    - name: Run tests
-      run: |
-        poetry run pytest --cov=./ --cov-report=xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-        fail_ci_if_error: true
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: ${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: true
+        # This step should run even if the test step fails, to report partial coverage.
+        if: ${{ !cancelled() }}
