@@ -7,6 +7,7 @@ Responsibilities:
 - Provide configuration options for Tesseract (e.g., language, PSM).
 - Output OCR data in a structured format (e.g., mapping to internal models).
 """
+
 from __future__ import annotations
 
 import platform

@@ -52,7 +52,7 @@ def test_refine_document_without_client(
     assert "Skipping LLM refinement" in caplog.text
 
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # type: ignore[misc]
     "func",
     [
         llm_refinement._correct_ocr,

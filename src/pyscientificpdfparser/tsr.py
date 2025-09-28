@@ -7,6 +7,7 @@ Responsibilities:
 - Identify rows, columns, headers, and spanning cells.
 - Extract cell content and map it to the recognized structure.
 """
+
 from __future__ import annotations
 
 import torch
@@ -27,12 +28,8 @@ class TableRecognizer:
     ):
         """Initializes the TableRecognizer."""
         try:
-            self.processor = AutoProcessor.from_pretrained(
-                model_name, apply_ocr=False
-            )
-            self.model = AutoModelForObjectDetection.from_pretrained(
-                model_name
-            )
+            self.processor = AutoProcessor.from_pretrained(model_name, apply_ocr=False)
+            self.model = AutoModelForObjectDetection.from_pretrained(model_name)
             self.model.eval()
         except OSError:
             print(f"Could not load model '{model_name}'. Skipping TSR.")

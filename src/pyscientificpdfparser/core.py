@@ -5,6 +5,7 @@ Core pipeline orchestration for the pyScientificPdfParser.
 This module contains the main function(s) that connect the different stages
 of the parsing pipeline, from input processing to final output generation.
 """
+
 from __future__ import annotations
 
 import pathlib
